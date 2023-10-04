@@ -6,18 +6,26 @@ import { households } from './households.table';
 export const usersToHouseholds = pgTable(
   'users_to_households',
   {
-    userId: uuid('user_id').notNull(),
-    householdId: text('household_id').notNull(),
+    userId: uuid('user_id').notNull().references(() => users.id),
+    householdId: text('household_id').notNull().references(() => households.id),
   }
 );
 
 export const usersToHouseholdsRelations = relations(usersToHouseholds, ({ one }) => ({
   user: one(users, {
     fields: [usersToHouseholds.userId],
-    references: [users.id]
+    references: [users.id],
   }),
-  households: one(households, {
+  household: one(households, {
     fields: [usersToHouseholds.householdId],
-    references: [households.id]
+    references: [households.id],
   })
+}));
+
+export const usersHouseholds = relations(users, ({ many }) => ({
+  households: many(usersToHouseholds)
+}));
+
+export const householdUsers = relations(households, ({ many }) => ({
+  users: many(usersToHouseholds)
 }));

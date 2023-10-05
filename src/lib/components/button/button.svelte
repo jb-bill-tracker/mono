@@ -9,10 +9,13 @@
           primary: 'bg-emerald-300 text-zinc-800'
         },
         size: {
-          medium: 'p-2'
+          medium: 'px-2'
         },
         rounded: {
-          DEFAULT: 'rounded-full'
+          DEFAULT: 'rounded-full',
+          lg: 'rounded-lg',
+          md: 'rounded',
+          none: ''
         }
       },
       defaultVariants: {

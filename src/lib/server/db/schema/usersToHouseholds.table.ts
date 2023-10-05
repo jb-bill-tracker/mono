@@ -1,4 +1,4 @@
-import { pgTable, text, uuid } from 'drizzle-orm/pg-core';
+import { pgTable, primaryKey, text, uuid } from 'drizzle-orm/pg-core';
 import { users } from './users.table';
 import { relations } from 'drizzle-orm';
 import { households } from './households.table';
@@ -6,9 +6,10 @@ import { households } from './households.table';
 export const usersToHouseholds = pgTable(
   'users_to_households',
   {
-    userId: uuid('user_id').notNull().references(() => users.id),
+    id: uuid('id').notNull().primaryKey().defaultRandom(),
+    userId: uuid('user_id').notNull(),
     householdId: text('household_id').notNull().references(() => households.id),
-  }
+  },
 );
 
 export const usersToHouseholdsRelations = relations(usersToHouseholds, ({ one }) => ({

@@ -1,4 +1,8 @@
 import { db } from '$lib/server/db';
+import { households } from '$lib/server/db/schema/households.table.js';
+import { usersHouseholds, usersToHouseholds } from '$lib/server/db/schema/usersToHouseholds.table.js';
+import { eq, sql } from 'drizzle-orm';
+import { ulid } from 'ulid';
 
 export const load = async ({ locals }) => {
   const { data: { user }, error } = await locals.supabase.auth.getUser();
@@ -30,10 +34,83 @@ export const load = async ({ locals }) => {
 }
 
 export const actions = {
-  addHouseHold: async ({ locals, request }) => {
-    console.info('saving', request, locals);
+  addHousehold: async ({ request, locals }) => {
+    const session = await locals.getSession();
+    const data = await request.formData();
+
+    if(data.has('household-name') && session && session.user) {
+      const [household] = await db.insert(households).values({
+        id: ulid(),
+        name: data.get('household-name') as string
+      }).returning();
+
+      await db.insert(usersToHouseholds).values({
+        userId: session.user.id,
+        householdId: household.id,
+      });
+
+      return {
+        success: true,
+        type: 'add-household',
+        household,
+      }
+    }
+
+    return {
+      success: false,
+    }
+  },
+  deleteHousehold: async ({ request, locals }) => {
+    const session = await locals.getSession();
+    const data = await request.formData();
+    console.info(data.get('household-id'))
+
+    if(!session) {
+      return {
+        success: false,
+        type: 'delete-household',
+        code: 401,
+      }
+    }
+
+    const householdId = data.get('household-id');
+
+    // Need this to run correctly.
+    if(!householdId || typeof householdId !== 'string') {
+      return {
+        success: false,
+        type: 'delete-household',
+        code: 400,
+      }
+    }
+
+    console.info(householdId);
+
+    const household = await db.query.households.findFirst({
+      where(fields, operators) {
+        return operators.eq(fields.id, householdId)
+      },
+      with: {
+        users: true,
+      }
+    });
+    if(household && household.users.length === 1 && household.users.some(v => v.userId === session.user.id)) {
+      console.info('we can delete');
+      const resp = await db.delete(households).where(eq(households.id, householdId)).returning();
+      console.info('DELETE RESPONSE', resp);
+    } else {
+      console.info('no can delete');
+      return {
+        success: false,
+        code: 400,
+        type: 'delete-household'
+      };
+    }
+
     return {
       success: true,
-    }
+      type: 'delete-household',
+      code: 200,
+    };    
   }
 }

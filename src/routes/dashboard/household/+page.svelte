@@ -2,6 +2,7 @@
   import Button from "$lib/components/button/button.svelte";
 
   import { enhance } from '$app/forms';
+    import Header from "$lib/components/header/header.svelte";
   export let data;
   let households = data.households;
   $: households = data.households;
@@ -11,22 +12,36 @@
     if(!(el instanceof HTMLDialogElement)) {
       return false;
     }
-    el.showModal();
+    if(el.hasAttribute('open')) {
+      el.close()
+    } else {
+      el.showModal();
+    }
   }
+
+  function deleteHousehold() {
+    
+  }
+  
 </script>
 
 <div class="container mx-auto mt-4">
-  <header class="flex justify-between items-end">
-    <h1 class="text-4xl font-bold dark:text-emerald-400 text-emerald-800 ">Households</h1>
-    <section class="actions">
+  <Header>
+    Households
+    <svelte:fragment slot="actions">
       <Button on:click={toggleHouseholds}>Add</Button>
-    </section>
-  </header>
+    </svelte:fragment>
+  </Header>
 
-  
   {#each households as household}
-    {JSON.stringify(household)}
-    <strong>{household.name}</strong>
+    <div class="p-2 border rounded my-2">
+      <form action="?/deleteHousehold" method="post" use:enhance>
+        <input type="hidden" value={household.id} name="household-id"/>
+        <strong>{household.name}</strong>
+         - {household.users.length} members
+         <Button type="submit">Delete</Button>
+      </form>
+    </div>
   {/each}
 
 </div>
@@ -34,10 +49,10 @@
 <dialog id="create-household" class="rounded-lg p-2 max-w-7xl">
   <form action="?/addHousehold" method="post" use:enhance>
     <label>
-      <input type="text" class="p-2 border rounded" placeholder="New Household name">
+      <input name="household-name" type="text" class="p-2 border rounded" placeholder="New Household name">
     </label>
     <footer class="p-4 flex justify-end">
-      <Button>Add</Button>
+      <Button on:click={toggleHouseholds}>Add</Button>
     </footer>
   </form>
 </dialog>

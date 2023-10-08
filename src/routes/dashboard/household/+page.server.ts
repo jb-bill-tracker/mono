@@ -84,28 +84,42 @@ export const actions = {
       }
     }
 
-    console.info(householdId);
+    db.query.users.findFirst({
+      with: {
+        households: true
+      }
+    }).then(r => r.household);
 
     const household = await db.query.households.findFirst({
       where(fields, operators) {
         return operators.eq(fields.id, householdId)
       },
-      with: {
-        users: true,
-      }
     });
-    if(household && household.users.length === 1 && household.users.some(v => v.userId === session.user.id)) {
-      console.info('we can delete');
-      const resp = await db.delete(households).where(eq(households.id, householdId)).returning();
-      console.info('DELETE RESPONSE', resp);
-    } else {
-      console.info('no can delete');
-      return {
-        success: false,
-        code: 400,
-        type: 'delete-household'
-      };
-    }
+    
+    console.info(household);
+    // Can only delete households with 1 member.
+
+    // if(household && household.users.length === 1 && household.users.some(v => v.userId === session.user.id)) {
+    //   console.info('we can delete');
+    //   const somanyThings = await db.query.households.findFirst({
+    //     where({id}, { eq}) {
+    //       return eq(id, householdId);
+    //     },
+    //     with: {
+    //       bills: true,
+    //     }
+    //   });
+    //   console.info('somanythings', somanyThings);
+    //   const resp = await db.delete(households).where(eq(households.id, householdId)).returning();
+    //   console.info('DELETE RESPONSE', resp);
+    // } else {
+    //   console.info('no can delete');
+    //   return {
+    //     success: false,
+    //     code: 400,
+    //     type: 'delete-household'
+    //   };
+    // }
 
     return {
       success: true,

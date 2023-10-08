@@ -1,9 +1,11 @@
 <script lang="ts">
   import Button from "$lib/components/button/button.svelte";
-
+  import { fly, slide} from 'svelte/transition';
   import { enhance } from '$app/forms';
-    import Header from "$lib/components/header/header.svelte";
-  export let data;
+  import Header from "$lib/components/header/header.svelte";
+  import type { ActionData, PageData } from './$types';
+  export let data: PageData;
+  export let form: ActionData
   let households = data.households;
   $: households = data.households;
 
@@ -19,9 +21,6 @@
     }
   }
 
-  function deleteHousehold() {
-    
-  }
   
 </script>
 
@@ -34,7 +33,7 @@
   </Header>
 
   {#each households as household}
-    <div class="p-2 border rounded my-2">
+    <div class="p-2 border rounded my-2" in:fly={{ y: 20}} out:slide>
       <form action="?/deleteHousehold" method="post" use:enhance>
         <input type="hidden" value={household.id} name="household-id"/>
         <strong>{household.name}</strong>

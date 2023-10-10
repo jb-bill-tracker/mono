@@ -84,22 +84,26 @@ export const actions = {
       }
     }
 
-    db.query.users.findFirst({
-      with: {
-        households: true
-      }
-    }).then(r => r.household);
-
     const household = await db.query.households.findFirst({
       where(fields, operators) {
         return operators.eq(fields.id, householdId)
       },
+      with: {
+        users: true, 
+      }
     });
     
-    console.info(household);
     // Can only delete households with 1 member.
 
-    // if(household && household.users.length === 1 && household.users.some(v => v.userId === session.user.id)) {
+    if(household && household.users.length && household.users.every(v => v.userId === session.user.id)) {
+      console.info('delete me bb');
+      const response = await db.delete(households).where(eq(households.id, householdId)).returning();
+      console.info('RESPONSE', response);
+    } else {
+      console.error('nope');
+    }
+
+    // if(household && household.users.length === 1 && household.users.every(v => v.userId === session.user.id)) {
     //   console.info('we can delete');
     //   const somanyThings = await db.query.households.findFirst({
     //     where({id}, { eq}) {

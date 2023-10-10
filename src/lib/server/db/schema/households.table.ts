@@ -1,7 +1,7 @@
 import { relations } from "drizzle-orm";
 import { date, index, pgTable, text } from "drizzle-orm/pg-core";
 import { bills } from "./bills.table";
-import { ulid } from "ulid";
+import { ulid } from 'ulidx';
 
 export const households = pgTable(
   'households',

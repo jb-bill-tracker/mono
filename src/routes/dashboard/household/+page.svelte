@@ -36,16 +36,17 @@
     <div class="p-2 border rounded my-2" in:fly={{ y: 20}} out:slide>
       <form action="?/deleteHousehold" method="post" use:enhance>
         <input type="hidden" value={household.id} name="household-id"/>
-        <strong>{household.name}</strong>
+        <strong><a href={`/dashboard/household/${household.id}`}>{household.name}</a></strong>
+          <small class="text-slate-400">{household.id}</small>
          - {household.users.length} members
          <Button type="submit">Delete</Button>
+         <Button type="button" on:click={() => console.info('EDIT THIS HOE', household.id)}>Edit</Button>
       </form>
     </div>
   {/each}
-
 </div>
 
-<dialog id="create-household" class="rounded-lg p-2 max-w-7xl">
+<dialog id="create-household" class="rounded-lg p-2 max-w-[30vw]">
   <form action="?/addHousehold" method="post" use:enhance>
     <label>
       <input name="household-name" type="text" class="p-2 border rounded" placeholder="New Household name">

@@ -1,11 +1,10 @@
 <script lang="ts">
   import Button from "$lib/components/button/button.svelte";
-  import { fly, slide} from 'svelte/transition';
   import { enhance } from '$app/forms';
   import Header from "$lib/components/header/header.svelte";
-  import type { ActionData, PageData } from './$types';
+  import type { PageData } from './$types';
+  import HouseholdListItem from "./_components/householdListItem.svelte";
   export let data: PageData;
-  export let form: ActionData
   let households = data.households;
   $: households = data.households;
 
@@ -24,6 +23,10 @@
   
 </script>
 
+<svelte:head>
+  <title>Dashboard &ndash; Households</title>
+</svelte:head>
+
 <div class="container mx-auto mt-4">
   <Header>
     Households
@@ -33,16 +36,8 @@
   </Header>
 
   {#each households as household}
-    <div class="p-2 border rounded my-2" in:fly={{ y: 20}} out:slide>
-      <form action="?/deleteHousehold" method="post" use:enhance>
-        <input type="hidden" value={household.id} name="household-id"/>
-        <strong><a href={`/dashboard/household/${household.id}`}>{household.name}</a></strong>
-          <small class="text-slate-400">{household.id}</small>
-         - {household.users.length} members
-         <Button type="submit">Delete</Button>
-         <Button type="button" on:click={() => console.info('EDIT THIS HOE', household.id)}>Edit</Button>
-      </form>
-    </div>
+    <HouseholdListItem  household={household}/>
+    
   {/each}
 </div>
 

@@ -1,4 +1,4 @@
-import { pgTable, text, uuid } from 'drizzle-orm/pg-core';
+import { pgTable, text, uuid, index } from 'drizzle-orm/pg-core';
 import { users } from './users.table';
 import { relations } from 'drizzle-orm';
 import { households } from './households.table';
@@ -10,6 +10,9 @@ export const usersToHouseholds = pgTable(
     userId: uuid('user_id').notNull(),
     householdId: text('household_id').notNull().references(() => households.id, { onDelete: 'cascade' }),
   },
+  ({ userId }) => ({
+    userIdIndex: index('household_user_id_index').on(userId)
+  })
 );
 
 export const usersToHouseholdsRelations = relations(usersToHouseholds, ({ one }) => ({

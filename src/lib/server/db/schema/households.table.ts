@@ -16,13 +16,13 @@ export const households = pgTable(
   })
 );
 
-// export const billHouseholdRelations = relations(bills, ({ one }) => ({
-//   household: one(households, {
-//     fields: [bills.householdId],
-//     references: [households.id]
-//   }),
-// }));
+export const billHouseholdRelations = relations(bills, ({ one }) => ({
+  household: one(households, {
+    fields: [bills.householdId],
+    references: [households.id]
+  }),
+}));
 
-// export const householdsToBillsRelations = relations(households, ({ many }) => ({
-//   bills: many(bills),
-// }));
+export const householdsToBillsRelations = relations(households, ({ many }) => ({
+  bills: many(bills),
+}));

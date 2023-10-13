@@ -1,8 +1,9 @@
 import { db } from '$lib/server/db';
 import { households } from '$lib/server/db/schema/households.table.js';
-import { usersHouseholds, usersToHouseholds } from '$lib/server/db/schema/usersToHouseholds.table.js';
-import { eq, sql } from 'drizzle-orm';
-import { ulid } from 'ulid';
+import { usersToHouseholds } from '$lib/server/db/schema/usersToHouseholds.table.js';
+import { fail } from '@sveltejs/kit';
+import { eq } from 'drizzle-orm';
+import { ulid } from 'ulidx';
 
 export const load = async ({ locals }) => {
   const { data: { user }, error } = await locals.supabase.auth.getUser();
@@ -11,25 +12,22 @@ export const load = async ({ locals }) => {
     return { households: []}
   }
 
-  const tmpUser = await db.query.users.findFirst({
+  const householdsValue = await db.query.usersToHouseholds.findMany({
+    where: ({ userId }, { eq }) => eq(userId, user.id),
     with: {
-      households: {
+      household: {
         with: {
-          household: {
-            with: {
-              users: true 
-            }
-          },
+          users: true,
         }
       },
-    },
-    where({ id }, { eq }) {
-      return eq(id, user.id);
     }
+  }).then(r => r.map(v => v.household )).catch(e => {
+    console.error(e);
+    return [];
   });
 
   return {
-    households: tmpUser?.households.map(t => t.household)  || [],
+    households: householdsValue,
   };
 }
 
@@ -86,10 +84,10 @@ export const actions = {
 
     const household = await db.query.households.findFirst({
       where(fields, operators) {
-        return operators.eq(fields.id, householdId)
+        return operators.eq(fields.id, householdId);
       },
       with: {
-        users: true, 
+        users: true,
       }
     });
     
@@ -103,32 +101,57 @@ export const actions = {
       console.error('nope');
     }
 
-    // if(household && household.users.length === 1 && household.users.every(v => v.userId === session.user.id)) {
-    //   console.info('we can delete');
-    //   const somanyThings = await db.query.households.findFirst({
-    //     where({id}, { eq}) {
-    //       return eq(id, householdId);
-    //     },
-    //     with: {
-    //       bills: true,
-    //     }
-    //   });
-    //   console.info('somanythings', somanyThings);
-    //   const resp = await db.delete(households).where(eq(households.id, householdId)).returning();
-    //   console.info('DELETE RESPONSE', resp);
-    // } else {
-    //   console.info('no can delete');
-    //   return {
-    //     success: false,
-    //     code: 400,
-    //     type: 'delete-household'
-    //   };
-    // }
-
     return {
       success: true,
       type: 'delete-household',
       code: 200,
     };    
+  },
+  updateHousehold: async ({ locals, request }) => {
+    const data = await request.formData();
+    const householdId = data.get('household-id');
+
+    // Bail
+    if(!householdId || typeof householdId !== 'string') {
+      return {
+        success: false,
+        code: 400,
+        type: 'update-household',
+      };
+    }
+
+    const newName = data.get('household-name');
+
+    if(!newName || typeof newName !== 'string') {
+      return {
+        success: false,
+        code: 400,
+        type: 'update-household'
+      };
+    }
+
+    return fail(401);
+
+    const values = await db
+      .update(households)
+      .set({
+        name: newName,
+      })
+      .where(eq(households.id, householdId))
+      .returning();
+
+    if(values) {
+      return {
+        success: true,
+        code: 201,
+        type: 'update-household'
+      }
+    }
+
+    return {
+      success: false,
+      code: 400,
+      type: 'update-household'
+    }
   }
-}
+};

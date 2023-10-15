@@ -18,13 +18,15 @@ export const load = async ({ locals }) => {
       household: {
         with: {
           users: true,
+          bills: true,
         }
       },
     }
-  }).then(r => r.map(v => v.household )).catch(e => {
-    console.error(e);
-    return [];
-  });
+  })
+    .then(r => r.map(v => v.household )).catch(e => {
+      console.error(e);
+      return [];
+    });
 
   return {
     households: householdsValue,

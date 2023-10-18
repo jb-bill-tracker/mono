@@ -30,7 +30,7 @@
   export let tag: VariantValues['tag'] = 'h1';
   export let color: VariantValues['color'] = 'primary'
 
-  const classes = headers({ tag, color });
+  const classes = headers({ tag, color, class: $$restProps.class });
 </script>
 
 <svelte:element this={tag} class="flex justify-between">

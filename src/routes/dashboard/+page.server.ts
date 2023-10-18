@@ -21,9 +21,30 @@ export const load = async ({ locals }) => {
     .innerJoin(usersToHouseholds, eq(usersToHouseholds.userId, session.user.id))
     .innerJoin(household, and(eq(bills.householdId, household.id), eq(usersToHouseholds.householdId, household.id)));
 
-  console.info('FULLQUERY', fullQuery);
+  const today = new Date();
+  const todaysDate = today.getDate();
+  const groupings = fullQuery.reduce((all, cur) => {
+    const diff = today.getDate() - cur.bills.dueDate;
+    if(diff > 0 && diff < 5) {
+     all.upcoming.push(cur);
+    }
+    if(diff >= 5 && diff < 10) {
+      all.comingSoon.push(cur);
+    }
+    if(todaysDate > cur.bills.dueDate) {
+      all.past.push(cur);
+    }
+    return all;
+  }, {
+    upcoming: [],
+    comingSoon: [],
+    paid: [],
+    past: [],
+    rest: []
+  } as Record<'upcoming' | 'comingSoon' | 'paid' | 'past' | 'rest', typeof fullQuery[0][]>);
 
   return {
     bills: fullQuery,
+    groupings,
   };
 }

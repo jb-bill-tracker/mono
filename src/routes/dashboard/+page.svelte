@@ -23,33 +23,35 @@
 
 </script>
 
+<svelte:head>
+  <title>
+    Dashboard
+  </title>
+</svelte:head>
+
   <div class="flex gap-3">
     <aside>
       <AppRail>
       	<svelte:fragment slot="lead">
-      		<AppRailAnchor href="/" ><MenuIcon class="mx-auto" size={36} /></AppRailAnchor>
+      		<AppRailAnchor href="/" ><MenuIcon class="mx-auto" size={32} /></AppRailAnchor>
       	</svelte:fragment>
       	<!-- --- -->
       	<AppRailTile bind:group={currentSidebar} name="tile-1" value={0} title="tile-1">
-      		<svelte:fragment slot="lead"><LayoutDashboardIcon class="mx-auto" size={36} /></svelte:fragment>
+      		<svelte:fragment slot="lead"><LayoutDashboardIcon class="mx-auto" size={32} /></svelte:fragment>
       		<span>Dashboard</span>
       	</AppRailTile>
       	<AppRailTile bind:group={currentSidebar} name="tile-2" value={1} title="tile-2">
       		<svelte:fragment slot="lead">
-            <ReceiptIcon class="mx-auto" size={36}/>
+            <ReceiptIcon class="mx-auto" size={32}/>
           </svelte:fragment>
       		<span>Bills</span>
       	</AppRailTile>
       	<AppRailTile bind:group={currentSidebar} name="tile-3" value={2} title="tile-3">
       		<svelte:fragment slot="lead">
-            <CreditCardIcon size={36} class="mx-auto" />
+            <CreditCardIcon size={32} class="mx-auto" />
           </svelte:fragment>
       		<span>Payments</span>
       	</AppRailTile>
-      	<!-- --- -->
-      	<svelte:fragment slot="trail">
-      		<AppRailAnchor href="/" target="_blank" title="Account">(icon)</AppRailAnchor>
-      	</svelte:fragment>
       </AppRail>
     </aside>
     <section class="flex-grow">

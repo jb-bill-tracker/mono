@@ -1,7 +1,7 @@
 import { db } from "$lib/server/db";
 import { error } from "@sveltejs/kit";
-import { bills, households, usersToHouseholds, usersToHouseholdsRelations } from '$lib/server/db/schema';
-import { eq, inArray, and } from 'drizzle-orm';
+import { bills, households, usersToHouseholds } from '$lib/server/db/schema';
+import { eq, and } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 
 const household = alias(households, 'household');
@@ -25,15 +25,19 @@ export const load = async ({ locals }) => {
   const todaysDate = today.getDate();
   const groupings = fullQuery.reduce((all, cur) => {
     const diff = today.getDate() - cur.bills.dueDate;
+
     if(diff > 0 && diff < 5) {
      all.upcoming.push(cur);
     }
+
     if(diff >= 5 && diff < 10) {
       all.comingSoon.push(cur);
     }
+
     if(todaysDate > cur.bills.dueDate) {
       all.past.push(cur);
     }
+    
     return all;
   }, {
     upcoming: [],

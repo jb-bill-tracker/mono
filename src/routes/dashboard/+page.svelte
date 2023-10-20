@@ -2,6 +2,7 @@
   import Header from "$lib/components/header/header.svelte";
   import { AppRail, AppRailAnchor, AppRailTile } from "@skeletonlabs/skeleton";
   import { MenuIcon, LayoutDashboardIcon, ReceiptIcon, CreditCardIcon } from 'lucide-svelte';
+  import { Temporal } from '@js-temporal/polyfill';
   export let data;
 
   const today = new Date();
@@ -18,6 +19,14 @@
    * PAID - status===paid
    * PAST - status !== paid && dueDate < currentDate
   */
+
+  const todayInstant = Temporal.Now.plainDateTimeISO();
+
+  // const to = Temporal.Now.instant();
+
+  // const oneWeekOut = to.add(Temporal.Duration.from('P1W'));
+
+  // console.info(to, oneWeekOut);
 
   let currentSidebar = 0;
 

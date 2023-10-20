@@ -3,6 +3,7 @@
   import { AppRail, AppRailAnchor, AppRailTile } from "@skeletonlabs/skeleton";
   import { MenuIcon, LayoutDashboardIcon, ReceiptIcon, CreditCardIcon } from 'lucide-svelte';
   import { Temporal } from '@js-temporal/polyfill';
+    import Combobox from "$lib/components/combobox/combobox.svelte";
   export let data;
 
   const today = new Date();
@@ -73,10 +74,10 @@
         <Header>Dashboard</Header>
         <Header tag="h2" color="secondary">Past Due</Header>
         <div class="flex flex-col gap-4">
-          {#each data.groupings.past as { bills, household}}
+          {#each data.groupings.past as { bills, household }}
             <div class="card variant-ghost-error">
               <header class="card-header">
-                {bills.billName}
+                {bills.billName} {bills.dueDate}
               </header>
             </div>
           {/each}
@@ -92,6 +93,7 @@
                 <strong>{household.name}</strong> Household
               </section>
               <footer class="card-footer flex gap-2">
+                <Combobox />
                 <button class="btn btn-sm variant-filled-primary">
                   Paid
                   <!-- Defer to anothe day, paid, missed? -->
@@ -121,7 +123,20 @@
         <Header class="mt-4" tag="h2" color="secondary">
           Paid
         </Header>
-        list of paid stuff
+        <div class="grid grid-cols-3">
+          {#each data.groupings.paid as {bills, payments, household}}
+            <div class="card variant-ghost-primary">
+              <header class="card-header">
+                {bills.billName}
+              </header>
+              <section class="p-4">
+                {#if payments}
+                  {payments.paidAt?.toLocaleDateString()} {payments.paidAt?.toLocaleTimeString()}
+                {/if}
+              </section>
+            </div>
+          {/each}
+        </div>
       </div>
     </section>
   </div>

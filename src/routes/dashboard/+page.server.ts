@@ -1,6 +1,6 @@
 import { db } from "$lib/server/db";
 import { error } from "@sveltejs/kit";
-import { bills, households, usersToHouseholds } from '$lib/server/db/schema';
+import { bills, households, payments, usersToHouseholds } from '$lib/server/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 
@@ -15,28 +15,40 @@ export const load = async ({ locals }) => {
     throw error(401, 'Not logged in');
   }
 
+  const today = new Date();
+
   const fullQuery = await db
     .select()
     .from(bills)
     .innerJoin(usersToHouseholds, eq(usersToHouseholds.userId, session.user.id))
-    .innerJoin(household, and(eq(bills.householdId, household.id), eq(usersToHouseholds.householdId, household.id)));
+    .innerJoin(household, and(eq(bills.householdId, household.id), eq(usersToHouseholds.householdId, household.id)))
+    .leftJoin(payments, and(eq(payments.forMonth, today.getMonth() + 1 ), eq(payments.billId, bills.id)));
 
-  const today = new Date();
+  console.info(fullQuery);
   const todaysDate = today.getDate();
   const groupings = fullQuery.reduce((all, cur) => {
     const diff = today.getDate() - cur.bills.dueDate;
+    console.info(diff, cur);
 
-    if(diff > 0 && diff < 5) {
-     all.upcoming.push(cur);
+    if(cur.payments !== null) {
+      all.paid.push(cur);
+      return all;
+    }
+
+    if(todaysDate > cur.bills.dueDate && cur.payments === null) {
+      all.past.push(cur);
+      return all;
+    }
+
+    if(diff > -5 && diff < 0) {
+      all.upcoming.push(cur);
     }
 
     if(diff >= 5 && diff < 10) {
       all.comingSoon.push(cur);
     }
 
-    if(todaysDate > cur.bills.dueDate) {
-      all.past.push(cur);
-    }
+
     
     return all;
   }, {

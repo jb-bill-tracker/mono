@@ -9,7 +9,7 @@
 	<svelte:fragment slot="trail">
     {#if $page.data.user && $page.data.user.id !== undefined}
       <a class="btn btn-sm variant-filled" href="/logout">Logout</a>
-      <a class="btn btn-sm variant-filled-primary" href="/dashboard">Dashboard</a>
+      <a class="btn btn-sm variant-ghost-primary" href="/dashboard">Dashboard</a>
     {:else}
       <a class="btn btn-sm variant-filled" href="/login">Login</a>
     {/if}

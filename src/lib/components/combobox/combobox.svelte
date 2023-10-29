@@ -41,7 +41,6 @@
 
   function bodyOnClick(e: MouseEvent) {
     const target = e.target as HTMLElement;
-    console.info(target, open)
     if(open && (target.matches('.listbox-item') || popup.contains(target))) {
       console.info(open);
       open = false;

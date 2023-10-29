@@ -33,11 +33,11 @@
   const classes = headers({ tag, color, class: $$restProps.class });
 </script>
 
-<svelte:element this={tag} class="flex justify-between">
+<svelte:element this={tag} class="flex justify-between items-baseline">
   <div class={classes}>
     <slot />
   </div>
-  <section class="actions flex gap-2">
+  <section class="actions inline-flex gap-2">
     <slot name="actions" />
   </section>
 </svelte:element>

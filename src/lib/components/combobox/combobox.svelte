@@ -1,32 +1,93 @@
 <script lang="ts">
-  import type { PopupSettings } from '@skeletonlabs/skeleton';
-  import { popup, ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
+  import { ListBox, ListBoxItem } from '@skeletonlabs/skeleton';
+  import { ChevronDownIcon } from 'lucide-svelte';
+  import { computePosition, autoPlacement, offset, autoUpdate } from '@floating-ui/dom';
+  import { onMount, createEventDispatcher } from 'svelte';
 
-  let comboboxValue: string;
+  export let value: string | number;
+  export let options = [];
 
-  let f = crypto.randomUUID();
+  const dispatcher = createEventDispatcher();
 
-  const popupCombobox: PopupSettings = {
-  	event: 'focus-click',
-  	target: f,
-  	placement: 'bottom',
-  	closeQuery: '.listbox-item',
-    state(event) {
-      console.info(event);
-    },
-  };
-				
+  let trigger: HTMLDivElement;
+  let popup: HTMLDivElement;
+  let open = false;
+
+  onMount(() => {
+    if(!trigger || !trigger.parentElement) return;
+
+    const cleanup = autoUpdate(trigger.parentElement, popup, () => {
+      if(!trigger.parentElement) return void 0;
+      computePosition(trigger.parentElement, popup, {
+        middleware: [offset(10), autoPlacement({
+          allowedPlacements: ['top', 'bottom']
+        })],
+        placement: 'bottom'
+      }).then(r => {
+        Object.assign(popup.style, {
+          left: `${r.x}px`,
+          top: `${r.y}px`
+        });
+      });
+    }, { 
+      ancestorScroll: true,
+    });
+
+    return () => {
+      cleanup();
+    }
+
+  });
+
+  function bodyOnClick(e: MouseEvent) {
+    const target = e.target as HTMLElement;
+    console.info(target, open)
+    if(open && (target.matches('.listbox-item') || popup.contains(target))) {
+      console.info(open);
+      open = false;
+    }
+  }
+
+  $: dispatcher('change', value);
+
 </script>
 
-<button class="btn variant-filled justify-between" use:popup={popupCombobox}>
-  <span class="capitalize">{comboboxValue ?? 'Trigger'}</span>
-	<div>↓</div>
-</button>
+<svelte:body on:click={bodyOnClick} />
 
-<div class="card" data-popup={f}>
-  <ListBox>
-    <ListBoxItem bind:group={comboboxValue} name="medium" value="books">Books</ListBoxItem>
-    <ListBoxItem bind:group={comboboxValue} name="medium" value="movies">Movies</ListBoxItem>
-    <ListBoxItem bind:group={comboboxValue} name="medium" value="television">TV</ListBoxItem>
-  </ListBox>
+<div class="relative">
+
+  <button
+    class="btn btn-sm variant-filled justify-between items-center">
+    <div>
+      {value ?? 'Trigger'}
+    </div>
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
+    <div
+      class="border-l border-zinc-800 hover:bg-primary-hover-token"
+      bind:this={trigger}
+      on:focus={e => open = true}
+      on:click={e => {
+        e.stopPropagation();
+        open = !open;
+      }}
+    >
+      <ChevronDownIcon class="transition-all" size={16}/>
+    </div>
+  </button>
+  
+  <div class="card absolute" class:hidden={!open} bind:this={popup}>
+    <ListBox>
+      <ListBoxItem bind:group={value} name="medium" value="books">
+        Books
+      </ListBoxItem>
+      <ListBoxItem bind:group={value} name="medium" value="movies">
+        Movies
+      </ListBoxItem>
+      <ListBoxItem bind:group={value} name="medium" value="television">
+        TV
+      </ListBoxItem>
+    </ListBox>
+  </div>
 </div>
+

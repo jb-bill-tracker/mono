@@ -7,7 +7,6 @@ import { alias } from 'drizzle-orm/pg-core';
 const household = alias(households, 'household');
 
 export const load = async ({ locals }) => {
-  console.info('Something something');
 
   const session = await locals.getSession();
 
@@ -24,11 +23,9 @@ export const load = async ({ locals }) => {
     .innerJoin(household, and(eq(bills.householdId, household.id), eq(usersToHouseholds.householdId, household.id)))
     .leftJoin(payments, and(eq(payments.forMonth, today.getMonth() + 1 ), eq(payments.billId, bills.id)));
 
-  console.info(fullQuery);
   const todaysDate = today.getDate();
   const groupings = fullQuery.reduce((all, cur) => {
     const diff = today.getDate() - cur.bills.dueDate;
-    console.info(diff, cur);
 
     if(cur.payments !== null) {
       all.paid.push(cur);

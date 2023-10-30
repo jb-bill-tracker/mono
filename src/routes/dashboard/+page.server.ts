@@ -1,7 +1,7 @@
 import { db } from "$lib/server/db";
-import { error } from "@sveltejs/kit";
+import { error, type Action } from "@sveltejs/kit";
 import { bills, households, payments, usersToHouseholds } from '$lib/server/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 
 const household = alias(households, 'household');
@@ -27,7 +27,7 @@ export const load = async ({ locals }) => {
   const groupings = fullQuery.reduce((all, cur) => {
     const diff = today.getDate() - cur.bills.dueDate;
 
-    if(cur.payments !== null) {
+    if(cur.payments !== null && cur.payments.paidAt !== null) {
       all.paid.push(cur);
       return all;
     }
@@ -56,8 +56,62 @@ export const load = async ({ locals }) => {
     rest: []
   } as Record<'upcoming' | 'comingSoon' | 'paid' | 'past' | 'rest', typeof fullQuery[0][]>);
 
+  const userHouseholds = await db
+    .select({
+      id: households.id,
+      name: households.name,
+      createdAt: households.createdAt,
+      householdCount: sql<number>`count(${households.id})`.mapWith(value => Number(value))
+    })
+    .from(households)
+    .innerJoin(
+      usersToHouseholds,
+      and(
+        eq(usersToHouseholds.userId, session.user.id),
+        eq(households.id, usersToHouseholds.householdId)
+      )
+    )
+    .groupBy(households.id);
+
   return {
     bills: fullQuery,
     groupings,
+    households: userHouseholds,
   };
 }
+
+export const actions = {
+  addBill: async ({ request, locals }) => {
+    const session = await locals.getSession();
+    const data = await request.formData();
+    const today = new Date();
+
+    if(session && session.user) {
+      console.info(session.user);
+      const [bill] = await db.insert(bills).values({
+        billName: data.get('bill-name') || 'default',
+        householdId: data.get('household-id') || '01',
+        dueDate: sql<string>`${data.get('due-date')}::integer`
+      }).returning();
+
+      // If the bill is further forward in the month than the current date, we must assume that the user wants to track this bill for this month too
+      if(bill.dueDate > today.getDate()) {
+        await db.insert(payments).values({
+          forMonth: today.getMonth() + 1,
+          billId: bill.id,
+        });
+      }
+
+      return {
+        success: true,
+        bill,
+        type: 'add-bill',
+      };
+    }
+
+    return {
+      success: false,
+      type: 'add-bill',
+    };
+  }
+};

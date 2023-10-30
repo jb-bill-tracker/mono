@@ -1,7 +1,7 @@
 <script lang="ts">
   import Header from "$lib/components/header/header.svelte";
   import { Accordion, AccordionItem, Step, Stepper } from "@skeletonlabs/skeleton";
-  import { PlusIcon } from "lucide-svelte";
+  import { PlusIcon, HomeIcon } from "lucide-svelte";
   export let data;
 
   const today = new Date();
@@ -21,31 +21,52 @@
    * PAST - status !== paid && dueDate < currentDate
    */
 
-  let dialogOpen = false;
+  let billName = '';
+  let dueDate = 1;
+  let householdId = '';  
+
 </script>
 
 <svelte:head>
   <title>Dashboard</title>
 </svelte:head>
 
-<Header class="mt-4">
+<Header class="mt-4 mb-4">
   Dashboard
   <svelte:fragment slot="actions">
     <button
-      class="btn variant-filled-primary btn-sm"
+      class="btn variant-ghost-primary btn-sm flex gap-1"
       on:click={() => {
         /** @type {HTMLDialogElement} */
         const el = document.getElementById("add-bill-ui");
         if (!el) return;
         el.showModal();
-      }}><PlusIcon />New Bill</button
-    >
+      }}><PlusIcon size="1.1em" />New Bill</button>
+    <button class='btn variant-ghost-primary btn-sm flex gap-2'>
+      <HomeIcon size='1.1em' />
+      New Household
+    </button>
   </svelte:fragment>
 </Header>
 
 <dialog class="bg-surface-800 w-10/12 text-white p-4 rounded backdrop:bg-zinc-900/40" id="add-bill-ui">
-  <form on:invalid={e => console.info('FUCK', e)}>
-    <Stepper>
+  <form action="?/addBill" method="post" >
+    <Stepper on:complete={e => {
+      const el = document.getElementById('add-bill-ui');
+      if(!el) return;
+      const fd = new FormData();
+      console.info(householdId, billName, dueDate);
+      fd.append('household-id', householdId);
+      fd.append('bill-name', billName);
+      fd.append('due-date', dueDate.toString());
+      fetch('?/addBill', {
+        method: 'post',
+        body: fd
+      }).then(console.info).catch(console.error);
+      [householdId, billName, dueDate] = ['','', 1];
+
+      el.close();
+    }}>
       <Step>
         <svelte:fragment slot="header">Bill Information</svelte:fragment>
         <input
@@ -54,12 +75,23 @@
           name="bill-name"
           placeholder="Name of the bill"
           required
+          bind:value={billName}
         />
-        <input class="px-2 input" placeholder="1" type="number" min="1" max="31" required />
+        <input bind:value={dueDate} name="dueDate" class="px-2 input" placeholder="1" type="number" min="1" max="31" required />
       </Step>
       <Step>
         <svelte:fragment slot="header">Household</svelte:fragment>
-        Step 2 content
+        <select bind:value={householdId} name="household-id" class="input p-3">
+          {#each data.households as household}
+            <option value={household.id}>
+              {household.name} &ndash; {household.householdCount} member(s)
+            </option>
+          {:else}
+            <option disabled>
+              No households
+            </option>
+          {/each}
+        </select>
       </Step>
     </Stepper>
   </form>

@@ -6,15 +6,7 @@
 
   const today = new Date();
 
-  const relativeParser = new Intl.RelativeTimeFormat(undefined, {
-    style: "long",
-    numeric: "auto",
-  });
-
-  let upcoming = data.bills.filter(
-    (f) => Math.abs(f.bills.dueDate - today.getDate()) < 5
-  );
-  /**
+    /**
    * UPCOMING < 5
    * COMING SOON < 10
    * PAID - status===paid

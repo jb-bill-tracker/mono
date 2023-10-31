@@ -1,3 +1,4 @@
+import { deleteHousehold } from '$lib/server/actions/households.actions.js';
 import { db } from '$lib/server/db';
 import { households } from '$lib/server/db/schema/households.table.js';
 import { usersToHouseholds } from '$lib/server/db/schema/usersToHouseholds.table.js';
@@ -63,7 +64,8 @@ export const actions = {
   deleteHousehold: async ({ request, locals }) => {
     const session = await locals.getSession();
     const data = await request.formData();
-    console.info(data.get('household-id'))
+    console.info(data.get('household-id'));
+
 
     if(!session) {
       return {

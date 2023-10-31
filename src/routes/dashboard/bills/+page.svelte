@@ -5,6 +5,27 @@
 
 <Header class="mt-4">Bills</Header>
 
-{#each data.bills as bill}
-  <p>{bill.billName} - {bill.householdName}</p>
-{/each}
+<table class="table table-compact table-hover">
+  <thead>
+    <tr>
+      <th>
+        Bill Name
+      </th>
+      <th>
+        Household
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    {#each data.bills as bill}
+      <tr on:click={() => console.info(bill)}>
+        <td>
+          {bill.billName}
+        </td>
+        <td>
+          {bill.householdName}
+        </td>
+      </tr>
+    {/each}
+  </tbody>
+</table>

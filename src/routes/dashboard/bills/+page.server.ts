@@ -28,7 +28,8 @@ export const load = async ({ locals }) => {
         eq(usersToHouseholds.householdId, households.id),
         eq(usersToHouseholds.userId, session.user.id)
       )
-    );
+    )
+    .orderBy(households.name, billsTable.billName);
   
   return {
     bills: bills

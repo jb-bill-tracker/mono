@@ -1,7 +1,9 @@
 import { db } from "$lib/server/db"
 import { bills as billsTable, households, usersToHouseholds } from "$lib/server/db/schema";
 import { and, eq } from "drizzle-orm";
-import { redirect } from '@sveltejs/kit'
+import { error, redirect } from '@sveltejs/kit'
+import { getUserHouseholds } from "$lib/server/actions/households.actions.js";
+import { getBill, updateBill } from "$lib/server/actions/bills.actions.js";
 
 export const load = async ({ locals }) => {
   const session = await locals.getSession();
@@ -14,6 +16,7 @@ export const load = async ({ locals }) => {
     .select({
       billId: billsTable.id,
       billName: billsTable.billName,
+      billDueDate: billsTable.dueDate,
       householdId: billsTable.householdId,
       householdName: households.name
     })
@@ -29,9 +32,48 @@ export const load = async ({ locals }) => {
         eq(usersToHouseholds.userId, session.user.id)
       )
     )
-    .orderBy(households.name, billsTable.billName);
+    .orderBy(households.name, billsTable.dueDate);
+
+
+  const userHouseholds = getUserHouseholds(session.user.id);
   
   return {
-    bills: bills
+    bills: bills,
+    households: userHouseholds
+  };
+}
+
+export const actions = {
+  updateBill: async ({ request, locals }) => {
+
+    const session = await locals.getSession();
+
+    if(!session || !session?.user) throw error(401, 'nope');
+
+    const data = await request.formData();
+    const billId = data.get('bill-id');
+    const userHouseholds = await getUserHouseholds(session.user.id);
+
+    if(!billId || typeof billId !== 'string') throw error(400, 'No bill ID provided');
+
+    const base  = await getBill(billId);
+
+    if(!userHouseholds.some(f => f.households.id === base.householdId)) {
+      throw error(400, 'You are not authorized to modify this bill');
+    }
+
+    const obj = Object.fromEntries(data.entries());
+    delete obj.id;
+
+    const newBill = await updateBill(billId, obj);
+
+    if(!newBill) throw error(405, 'Update failed');
+
+    return {
+      status: 200,
+      bill: newBill,
+    }
+    
+    throw error(401, 'nope');
   }
 }

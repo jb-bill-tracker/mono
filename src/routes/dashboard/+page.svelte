@@ -1,21 +1,14 @@
 <script lang="ts">
   import Header from "$lib/components/header/header.svelte";
   import { Accordion, AccordionItem, Step, Stepper } from "@skeletonlabs/skeleton";
-  import { PlusIcon, HomeIcon } from "lucide-svelte";
+  import { PlusIcon, HomeIcon, XIcon } from "lucide-svelte";
   export let data;
-
-  const today = new Date();
-
-    /**
-   * UPCOMING < 5
-   * COMING SOON < 10
-   * PAID - status===paid
-   * PAST - status !== paid && dueDate < currentDate
-   */
 
   let billName = '';
   let dueDate = 1;
   let householdId = '';  
+
+  let modalEl: HTMLDialogElement;
 
 </script>
 
@@ -29,10 +22,7 @@
     <button
       class="btn variant-ghost-primary btn-sm flex gap-1"
       on:click={() => {
-        /** @type {HTMLDialogElement} */
-        const el = document.getElementById("add-bill-ui");
-        if (!el) return;
-        el.showModal();
+        modalEl.showModal();
       }}><PlusIcon size="1.1em" />New Bill</button>
     <button class='btn variant-ghost-primary btn-sm flex gap-2'>
       <HomeIcon size='1.1em' />
@@ -41,13 +31,18 @@
   </svelte:fragment>
 </Header>
 
-<dialog class="bg-surface-800 w-10/12 text-white p-4 rounded backdrop:bg-zinc-900/40" id="add-bill-ui">
+<dialog bind:this={modalEl} class="bg-surface-800 w-10/12 text-white p-4 rounded backdrop:bg-zinc-900/40" id="add-bill-ui">
+  <header class="flex justify-end">
+    <button class="btn btn-icon" on:click={() => {
+      modalEl.close();
+    }}>
+      <XIcon size="1.1em" />
+    </button>
+  </header>
   <form action="?/addBill" method="post" >
     <Stepper on:complete={e => {
-      const el = document.getElementById('add-bill-ui');
-      if(!el) return;
+
       const fd = new FormData();
-      console.info(householdId, billName, dueDate);
       fd.append('household-id', householdId);
       fd.append('bill-name', billName);
       fd.append('due-date', dueDate.toString());
@@ -55,9 +50,10 @@
         method: 'post',
         body: fd
       }).then(console.info).catch(console.error);
+      // Reset
       [householdId, billName, dueDate] = ['','', 1];
 
-      el.close();
+      modalEl.close();
     }}>
       <Step>
         <svelte:fragment slot="header">Bill Information</svelte:fragment>
@@ -100,7 +96,11 @@
       </svelte:fragment>
       <svelte:fragment slot="content">
         <section class="p-4">
-          List of past due bills here
+          {#each data.groupings.past as { bills, household}}
+            <div>
+              {bills.billName}
+            </div>
+          {/each}
         </section>
       </svelte:fragment>
     </AccordionItem>
@@ -136,7 +136,7 @@
       </svelte:fragment>
       <svelte:fragment slot="content">
         <div class="flex flex-col gap-2">
-          {#each data.groupings.comingSoon as {bills, household}}
+          {#each data.groupings.comingSoon as { bills }}
             {bills.billName}
           {:else}
             <p>No bills coming soon</p>
@@ -158,9 +158,45 @@
                 {bills.billName} - due on {bills.dueDate}
               </header>
             </div>
+          {:else}
+            <div class="">
+              No paid bills
+            </div>
           {/each}
         </div>
       </svelte:fragment>
     </AccordionItem>
+    <AccordionItem open={data.groupings.rest.length > 0}>
+      <svelte:fragment slot="summary">
+        <Header tag="h3" color="secondary">
+          Other bills
+        </Header>
+      </svelte:fragment>
+      <svelte:fragment slot="content">
+        <table class="table table-interactive">
+          <thead>
+            <th>Bill Name</th>
+            <th>Due Date</th>
+            <th>Household</th>
+          </thead>
+          <tbody>
+            {#each data.groupings.rest as { bills, household }}
+              <tr>
+                <td>
+                  {bills.billName}
+                </td>
+                <td>
+                  {bills.dueDate}
+                </td>
+                <td>
+                  {household.name}
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </svelte:fragment>
+    </AccordionItem>
   </Accordion>
+
 </div>

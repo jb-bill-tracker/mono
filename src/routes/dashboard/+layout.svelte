@@ -1,6 +1,6 @@
 <script lang="ts">
   import { AppRail, AppRailAnchor } from "@skeletonlabs/skeleton";
-  import { CreditCardIcon, LayoutDashboardIcon, MenuIcon, ReceiptIcon } from "lucide-svelte";
+  import { CreditCardIcon, HomeIcon, LayoutDashboardIcon, MenuIcon, ReceiptIcon, Users2Icon } from "lucide-svelte";
   import { page } from '$app/stores';
 </script>
 <div class="flex gap-3 flex-grow">
@@ -19,6 +19,12 @@
             <ReceiptIcon class="mx-auto" size={32}/>
           </svelte:fragment>
       		<span>Bills</span>
+      	</AppRailAnchor>
+        <AppRailAnchor href="/dashboard/household" selected={$page.url.pathname === '/dashboard/household' }>
+      		<svelte:fragment slot="lead">
+            <Users2Icon class="mx-auto" size={32} />
+          </svelte:fragment>
+      		<span>Household</span>
       	</AppRailAnchor>
       	<AppRailAnchor href="/dashboard/payments" selected={$page.url.pathname === '/dashboard/payments'}>
       		<svelte:fragment slot="lead">

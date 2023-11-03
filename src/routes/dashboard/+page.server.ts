@@ -24,6 +24,7 @@ export const load = async ({ locals }) => {
     .leftJoin(payments, and(eq(payments.forMonth, today.getMonth() + 1 ), eq(payments.billId, bills.id)));
 
   const todaysDate = today.getDate();
+  console.info(fullQuery);
   const groupings = fullQuery.reduce((all, cur) => {
     const diff = today.getDate() - cur.bills.dueDate;
 
@@ -39,12 +40,15 @@ export const load = async ({ locals }) => {
 
     if(diff > -5 && diff < 0) {
       all.upcoming.push(cur);
+      return all;
     }
 
     if(diff >= 5 && diff < 10) {
       all.comingSoon.push(cur);
+      return all;
     }
 
+    all.rest.push(cur);
 
     
     return all;

@@ -3,7 +3,7 @@ import { bills as billsTable, households, usersToHouseholds } from "$lib/server/
 import { and, eq } from "drizzle-orm";
 import { error, redirect } from '@sveltejs/kit'
 import { getUserHouseholds } from "$lib/server/actions/households.actions.js";
-import { getBill, updateBill } from "$lib/server/actions/bills.actions.js";
+import { getBill, updateBill, type BillUpdateArgs } from "$lib/server/actions/bills.actions.js";
 
 export const load = async ({ locals }) => {
   const session = await locals.getSession();
@@ -62,8 +62,21 @@ export const actions = {
       throw error(400, 'You are not authorized to modify this bill');
     }
 
-    const obj = Object.fromEntries(data.entries());
-    delete obj.id;
+    const dueDate = Number(data.get('due-date') || 1);
+
+    if(isNaN(dueDate)) {
+      throw error(400, 'Bad request');
+    }
+
+    if(dueDate < 1 || dueDate > 28) {
+      throw error(400, 'Invalid due date');
+    }
+
+    const obj: BillUpdateArgs = {
+      dueDate,
+      householdId: data.get('household-id') as string,
+      billName: data.get('bill-name') as string,
+    };
 
     const newBill = await updateBill(billId, obj);
 
@@ -72,8 +85,7 @@ export const actions = {
     return {
       status: 200,
       bill: newBill,
-    }
+    };
     
-    throw error(401, 'nope');
   }
 }

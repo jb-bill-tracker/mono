@@ -1,5 +1,6 @@
 import { db, schema } from '$lib/server/db';
 import { eq } from 'drizzle-orm';
+import { NotFound } from '../errors';
 
 export type Bill = typeof schema.bills.$inferSelect;
 export type BillInsertArgs = typeof schema.bills.$inferInsert;
@@ -29,12 +30,29 @@ export async function createBill(bill: BillInsertArgs) {
     .then(([f]) => f);
 }
 
+/**
+ * 
+ * @param billId The ID of the bill we are fetching
+ * @returns the bill
+ * @throws an error when an error isn't found.
+ */
 export async function getBill(billId: Bill['id']) {
   return db.select()
     .from(schema.bills)
     .where(eq(schema.bills.id, billId))
     .then((r) => {
-      if(r.length > 1 || r.length === 0) throw new Error(`Bill not found (id: ${billId})`);
+      if(r.length > 1 || r.length === 0) throw new NotFound(`Bill not found (id: ${billId})`);
       return r[0];
     });
+}
+
+/**
+ * 
+ * @param billId The ID of the bill we are deleting
+ * @returns 
+ */
+export async function deleteBill(billId: Bill['id']) {
+  return db.delete(schema.bills)
+    .where(eq(schema.bills.id, billId))
+    .returning();
 }

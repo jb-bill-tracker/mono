@@ -4,13 +4,16 @@
   import type { ActionResult } from "@sveltejs/kit";
   import { invalidate } from "$app/navigation";
   import { getToastStore } from '@skeletonlabs/skeleton';
+    import Modal from "$lib/components/modal/modal.svelte";
 
   export let data;
 
   let editModal: HTMLDialogElement;
   let deleteModal: HTMLDialogElement;
+  export let showDeleteModal = false;
 
   let selectedBill: typeof data.bills[number] = data.bills[0];
+  let validation = '';
 
   const toastStore = getToastStore();
 
@@ -41,6 +44,8 @@
       });
     }
 
+    validation = '';
+
   }
 </script>
 
@@ -49,6 +54,35 @@
     Sungmanito &ndash; Bills
   </title>
 </svelte:head>
+
+<Modal open={showDeleteModal} modal class="variant-filled-surface p-4 rounded" on:close={e => e.preventDefault()}>
+  <svelte:fragment slot="header">
+    Hi
+  </svelte:fragment>
+  Testing
+</Modal>
+
+<dialog bind:this={deleteModal} class="p-4 rounded bg-surface-active-token shadow backdrop:bg-gray-800/30">
+  <form class="flex flex-col gap-2" method="dialog" action="?/deleteBill" on:submit={submitForm}>
+    <input type="hidden" name="bill-id" value={selectedBill.billId}>
+    <header class="h4 border-b pb-2">
+      Delete &quot;{selectedBill.billName}&quot;?
+    </header>
+    <section>
+      <p>Are you sure you want to delete {selectedBill.billName}?</p>
+      <p>Please type in &quot;delete&quot;</p>
+      <input type="text" class="input px-3 py-1 mt-3" bind:value={validation}>
+    </section>
+    <footer class="border-t pt-3 flex justify-end gap-2">
+      <button type="button" on:click={() => deleteModal.close()} class="btn variant-outline btn-sm">
+        Close
+      </button>
+      <button class="btn btn-sm variant-filled-primary" disabled={validation !== 'delete'}>
+        Submit
+      </button>
+    </footer>
+  </form>
+</dialog>
 
 <dialog bind:this={editModal} class="p-4 rounded bg-surface-active-token shadow shadow-gray-400 text-token backdrop:bg-surface-600">
   <form method="dialog" action="?/updateBill" on:submit={submitForm}>
@@ -141,7 +175,10 @@
               <PencilIcon size='1em' />
             </button>
 
-            <button class="btn-icon btn-icon-sm variant-filled-secondary" title={`Delete bill ${bill.billName}`}>
+            <button class="btn-icon btn-icon-sm variant-filled-secondary" title={`Delete bill ${bill.billName}`} on:click={() => {
+              selectedBill = bill;
+              deleteModal.showModal();
+            }}>
               <TrashIcon size='1em' />
             </button>
 

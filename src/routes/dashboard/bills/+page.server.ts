@@ -87,5 +87,18 @@ export const actions = {
       bill: newBill,
     };
     
+  },
+  deleteBill: async ({ request, locals }) => {
+
+    const session = await locals.getSession();
+    const formData = await request.formData();
+
+    if(!session || !session.user) throw error(401, 'Not logged in');
+
+    const parsedData = Object.fromEntries(formData.entries());
+
+    console.info(session, parsedData);
+
+    throw error(400, 'fucked');
   }
 }

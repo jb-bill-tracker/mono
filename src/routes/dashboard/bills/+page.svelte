@@ -2,7 +2,7 @@
   import Header from "$lib/components/header/header.svelte";
   import { PencilIcon, TrashIcon, XIcon } from "lucide-svelte";
   import type { ActionResult } from "@sveltejs/kit";
-  import { invalidate } from "$app/navigation";
+  import { invalidate, invalidateAll } from "$app/navigation";
   import { getToastStore } from '@skeletonlabs/skeleton';
     import Modal from "$lib/components/modal/modal.svelte";
 
@@ -35,7 +35,8 @@
     }).then(r => r.json()) as ActionResult;
 
     if(response.type === 'success' && response.status >= 200 && response.status <= 299) {
-      await invalidate(url.pathname);
+      await invalidateAll();
+      (e.target as HTMLFormElement).closest('dialog')?.close();
       editModal.close();
     } else if(response.type === 'error') {
       toastStore.trigger({
@@ -54,13 +55,6 @@
     Sungmanito &ndash; Bills
   </title>
 </svelte:head>
-
-<Modal open={showDeleteModal} modal class="variant-filled-surface p-4 rounded" on:close={e => e.preventDefault()}>
-  <svelte:fragment slot="header">
-    Hi
-  </svelte:fragment>
-  Testing
-</Modal>
 
 <dialog bind:this={deleteModal} class="p-4 rounded bg-surface-active-token shadow backdrop:bg-gray-800/30">
   <form class="flex flex-col gap-2" method="dialog" action="?/deleteBill" on:submit={submitForm}>
@@ -134,8 +128,11 @@
 
 
 
-<Header class="mt-4">Bills</Header>
+<Header class="mt-4 mb-6">
+  Bills
+</Header>
 
+<!-- TODO: Fancy todo table -->
 <table class="table table-compact table-hover">
   <thead>
     <tr>

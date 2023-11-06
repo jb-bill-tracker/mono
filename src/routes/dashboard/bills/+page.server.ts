@@ -1,6 +1,6 @@
 import { db } from "$lib/server/db"
 import { bills as billsTable, households, usersToHouseholds } from "$lib/server/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { error, redirect } from '@sveltejs/kit'
 import { getUserHouseholds } from "$lib/server/actions/households.actions.js";
 import { getBill, updateBill, type BillUpdateArgs } from "$lib/server/actions/bills.actions.js";
@@ -97,8 +97,24 @@ export const actions = {
 
     const parsedData = Object.fromEntries(formData.entries());
 
-    console.info(session, parsedData);
+    const userHouseholds = await getUserHouseholds(session.user.id);
 
-    throw error(400, 'fucked');
+    const resp = await db.delete(billsTable)
+      .where(
+        and(
+          eq(billsTable.id, parsedData['bill-id'] as string),
+          inArray(billsTable.householdId, userHouseholds.map(v => v.households.id)),
+        )
+      )
+      .returning();
+    
+    if (resp.length !== 1) throw error(400, 'Bill not found');
+
+    return {
+      success: true,
+      status: 200,
+      bill: resp[0],
+    };
+
   }
 }

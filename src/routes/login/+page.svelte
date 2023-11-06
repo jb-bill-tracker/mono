@@ -52,7 +52,6 @@
             redirectTo: 'http://localhost:5173/login?/update',
           }
         }).then((r) => {
-          console.info(r);
           goto('/dashboard')
         }).catch(console.error) }>
           Google

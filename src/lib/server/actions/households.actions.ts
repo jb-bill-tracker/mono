@@ -34,6 +34,5 @@ export async function deleteHousehold(householdId: string) {
     },
     where: ({ id }, { eq }) => eq(id, householdId)
   });
-  console.info(household);
   return household;
 }

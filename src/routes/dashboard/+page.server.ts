@@ -24,7 +24,6 @@ export const load = async ({ locals }) => {
     .leftJoin(payments, and(eq(payments.forMonth, today.getMonth() + 1 ), eq(payments.billId, bills.id)));
 
   const todaysDate = today.getDate();
-  console.info(fullQuery);
   const groupings = fullQuery.reduce((all, cur) => {
     const diff = today.getDate() - cur.bills.dueDate;
 
@@ -91,7 +90,6 @@ export const actions = {
     const today = new Date();
 
     if(session && session.user) {
-      console.info(session.user);
       const [bill] = await db.insert(bills).values({
         billName: data.get('bill-name') || 'default',
         householdId: data.get('household-id') || '01',

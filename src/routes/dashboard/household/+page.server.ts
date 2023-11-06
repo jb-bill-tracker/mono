@@ -64,8 +64,6 @@ export const actions = {
   deleteHousehold: async ({ request, locals }) => {
     const session = await locals.getSession();
     const data = await request.formData();
-    console.info(data.get('household-id'));
-
 
     if(!session) {
       return {
@@ -98,7 +96,6 @@ export const actions = {
     // Can only delete households with 1 member.
 
     if(household && household.users.length && household.users.every(v => v.userId === session.user.id)) {
-      console.info('delete me bb');
       const response = await db.delete(households).where(eq(households.id, householdId)).returning();
       console.info('RESPONSE', response);
     } else {
